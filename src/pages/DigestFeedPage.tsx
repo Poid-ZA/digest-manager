@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDigest } from "@/context/DigestContext";
 import { buildDigestFeedXml, DigestFeedItem } from "@/lib/digest-feed";
 import { TopicBadge } from "@/components/TopicBadge";
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { Copy, ExternalLink, FileText, RefreshCw, Rss } from "lucide-react";
 import { format } from "date-fns";
+import { DigestRun } from "@/lib/digest-types";
 
 function parseDigestPreview(runId: string, preview: string, publishedAt: string): DigestFeedItem[] {
   const lines = preview.split("\n").map((line) => line.trim());
@@ -50,11 +51,23 @@ function parseDigestPreview(runId: string, preview: string, publishedAt: string)
 export default function DigestFeedPage() {
   const { runs, articles, triggerRun, refreshing, loading } = useDigest();
   const { toast } = useToast();
+  const [latestGeneratedRun, setLatestGeneratedRun] = useState<DigestRun | null>(null);
 
-  const latestRun = useMemo(
+  const latestPersistedRun = useMemo(
     () => [...runs].sort((left, right) => Date.parse(right.date) - Date.parse(left.date))[0] ?? null,
     [runs],
   );
+
+  useEffect(() => {
+    if (!latestGeneratedRun || !latestPersistedRun) {
+      return;
+    }
+    if (Date.parse(latestPersistedRun.date) >= Date.parse(latestGeneratedRun.date)) {
+      setLatestGeneratedRun(null);
+    }
+  }, [latestGeneratedRun, latestPersistedRun]);
+
+  const latestRun = latestGeneratedRun ?? latestPersistedRun;
 
   const selectedArticles = useMemo<DigestFeedItem[]>(() => {
     if (!latestRun) {
@@ -88,6 +101,7 @@ export default function DigestFeedPage() {
 
   const handleGenerate = async () => {
     const digest = await triggerRun();
+    setLatestGeneratedRun(digest.run);
     toast({
       title: "Digest feed refreshed",
       description: `${digest.run.includedArticles} articles published into the latest digest feed.`,
