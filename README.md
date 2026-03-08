@@ -1,73 +1,65 @@
-# Welcome to your Lovable project
+# APEX Digest Manager
 
-## Project info
+APEX Digest Manager is a feed-first operator console for collecting live technical sources, curating a digest, and publishing the latest run for in-browser review and RSS consumption.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Built and maintained under the APEX / Proxy4u engineering stack.
 
-## How can I edit this code?
+## What It Does
 
-There are several ways of editing your application.
+- ingests live RSS and API-backed technical sources
+- stores feeds, articles, runs, and config in Supabase
+- triggers live digest runs through Supabase Edge Functions
+- publishes the latest curated digest in-browser and as RSS XML
+- keeps a local Express fallback for development and recovery
 
-**Use Lovable**
+## Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- shadcn-ui
+- Supabase
+- Vitest
 
-Changes made via Lovable will be committed automatically to this repo.
+## Local Development
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```powershell
+cd D:\Workspace\digest-manager
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+App routes are served by Vite on port `8080`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Environment
 
-**Use GitHub Codespaces**
+Copy `.env.example` to `.env` and fill in:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
 
-## What technologies are used for this project?
+These values are intentionally not committed.
 
-This project is built with:
+## Supabase
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Migration and function guidance lives in:
 
-## How can I deploy this project?
+- [SUPABASE_SETUP.md](D:\Workspace\digest-manager\SUPABASE_SETUP.md)
+- `supabase/migrations/`
+- `supabase/functions/`
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Use placeholder values in public docs and provide your real project values only through local env files or Supabase secrets.
 
-## Can I connect a custom domain to my Lovable project?
+## Quality Checks
 
-Yes, you can!
+```powershell
+npm run lint
+npm test
+npm run build
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Branding
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+This repository is APEX-owned and Proxy4u-operated.
+Any leftover generated-project branding should be treated as accidental and removed.

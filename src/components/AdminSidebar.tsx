@@ -1,4 +1,4 @@
-import { Rss, Settings, Activity, Search, Zap } from "lucide-react";
+import { Rss, Settings, Activity, Search, Zap, Radio } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -16,6 +16,7 @@ const navItems = [
   { title: "Feeds", url: "/", icon: Rss },
   { title: "Digest Config", url: "/config", icon: Settings },
   { title: "Run Dashboard", url: "/runs", icon: Activity },
+  { title: "Digest Feed", url: "/digest-feed", icon: Radio },
   { title: "Content Browser", url: "/content", icon: Search },
 ];
 

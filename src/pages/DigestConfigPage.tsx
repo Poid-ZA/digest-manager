@@ -1,47 +1,64 @@
-import { useState } from "react";
-import { mockConfig, TOPICS, DigestConfig, TopicCategory } from "@/lib/mock-data";
+import { useEffect, useMemo, useState } from "react";
 import { TopicBadge } from "@/components/TopicBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Send, Plus, X } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useDigest } from "@/context/DigestContext";
+import { useToast } from "@/components/ui/use-toast";
+import { DigestConfig, TopicCategory, TOPICS } from "@/lib/digest-types";
+import { Radio, RotateCcw } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function DigestConfigPage() {
-  const [config, setConfig] = useState<DigestConfig>(mockConfig);
-  const [newRecipient, setNewRecipient] = useState("");
+  const { config, loading, refreshing, saveConfig, resetWorkspace } = useDigest();
+  const { toast } = useToast();
+  const [draft, setDraft] = useState<DigestConfig>(config);
 
-  const addRecipient = () => {
-    if (newRecipient && !config.recipients.includes(newRecipient)) {
-      setConfig((c) => ({ ...c, recipients: [...c.recipients, newRecipient] }));
-      setNewRecipient("");
-    }
-  };
+  useEffect(() => {
+    setDraft(config);
+  }, [config]);
 
-  const removeRecipient = (email: string) => {
-    setConfig((c) => ({
-      ...c,
-      recipients: c.recipients.filter((r) => r !== email),
-    }));
-  };
+  const hasUnsavedChanges = useMemo(
+    () => JSON.stringify(config) !== JSON.stringify(draft),
+    [config, draft],
+  );
 
   const setTopicLimit = (topic: TopicCategory, value: number) => {
-    setConfig((c) => ({
-      ...c,
-      topicLimits: { ...c.topicLimits, [topic]: value },
+    setDraft((current) => ({
+      ...current,
+      topicLimits: { ...current.topicLimits, [topic]: value },
     }));
+  };
+
+  const handleSave = async () => {
+    await saveConfig(draft);
+    toast({
+      title: "Configuration saved",
+      description: "Digest selection and summary settings have been updated.",
+    });
+  };
+
+  const handleReset = async () => {
+    await resetWorkspace();
+    toast({
+      title: "Workspace reset",
+      description: "Feeds and configuration were reset to the default real feed set.",
+    });
   };
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <div>
-        <h1 className="text-2xl font-semibold">Digest Configuration</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Configure how the daily digest is generated and delivered
-        </p>
+    <div className="max-w-3xl space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Digest Configuration</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {loading ? "Loading configuration..." : "Configure how the daily digest is generated and published"}
+          </p>
+        </div>
+        <Button variant="outline" onClick={handleReset}>
+          <RotateCcw className="mr-1 h-4 w-4" /> Reset Workspace
+        </Button>
       </div>
 
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
@@ -52,15 +69,15 @@ export default function DigestConfigPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {TOPICS.map((topic) => (
-              <div key={topic} className="flex items-center justify-between">
+              <div key={topic} className="flex items-center justify-between gap-4">
                 <TopicBadge topic={topic} />
                 <Input
                   type="number"
                   min={1}
                   max={20}
-                  value={config.topicLimits[topic]}
-                  onChange={(e) => setTopicLimit(topic, parseInt(e.target.value) || 1)}
-                  className="w-20 bg-background font-mono text-center"
+                  value={draft.topicLimits[topic]}
+                  onChange={(event) => setTopicLimit(topic, Number(event.target.value || 1))}
+                  className="w-20 bg-background text-center font-mono"
                 />
               </div>
             ))}
@@ -70,14 +87,19 @@ export default function DigestConfigPage() {
         <Card className="bg-card">
           <CardHeader>
             <CardTitle className="text-base">Summary Length</CardTitle>
-            <CardDescription>Control the verbosity of AI-generated summaries</CardDescription>
+            <CardDescription>Control the verbosity of generated summaries</CardDescription>
           </CardHeader>
           <CardContent>
             <Select
-              value={config.summaryLength}
-              onValueChange={(v) => setConfig((c) => ({ ...c, summaryLength: v as DigestConfig["summaryLength"] }))}
+              value={draft.summaryLength}
+              onValueChange={(value) =>
+                setDraft((current) => ({
+                  ...current,
+                  summaryLength: value as DigestConfig["summaryLength"],
+                }))
+              }
             >
-              <SelectTrigger className="bg-background w-48">
+              <SelectTrigger className="w-48 bg-background">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -91,39 +113,22 @@ export default function DigestConfigPage() {
 
         <Card className="bg-card">
           <CardHeader>
-            <CardTitle className="text-base">Email Recipients</CardTitle>
-            <CardDescription>Manage who receives the daily digest</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Radio className="h-4 w-4" />
+              Publishing Mode
+            </CardTitle>
+            <CardDescription>The digest is published for in-browser review and RSS consumption only.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex gap-2">
-              <Input
-                value={newRecipient}
-                onChange={(e) => setNewRecipient(e.target.value)}
-                placeholder="email@example.com"
-                className="bg-background font-mono text-sm"
-                onKeyDown={(e) => e.key === "Enter" && addRecipient()}
-              />
-              <Button size="sm" onClick={addRecipient}>
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {config.recipients.map((email) => (
-                <Badge key={email} variant="secondary" className="font-mono text-xs gap-1 pl-2 pr-1">
-                  {email}
-                  <button onClick={() => removeRecipient(email)} className="hover:text-destructive">
-                    <X className="w-3 h-3" />
-                  </button>
-                </Badge>
-              ))}
+            <div className="rounded-md bg-background p-3 text-sm text-muted-foreground">
+              Manual runs now publish the digest into the in-app feed view. Use the new <span className="font-medium text-foreground">Digest Feed</span> page to inspect the latest curated output and copy the RSS XML.
             </div>
           </CardContent>
         </Card>
 
         <div className="flex gap-2">
-          <Button>Save Configuration</Button>
-          <Button variant="outline">
-            <Send className="w-4 h-4 mr-1" /> Send Test Email
+          <Button onClick={handleSave} disabled={!hasUnsavedChanges || refreshing}>
+            Save Configuration
           </Button>
         </div>
       </motion.div>

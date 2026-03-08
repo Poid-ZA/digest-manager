@@ -1,4 +1,4 @@
-import { TopicCategory, TOPIC_COLORS } from "@/lib/mock-data";
+import { TopicCategory, TOPIC_COLORS } from "@/lib/digest-types";
 import { Badge } from "@/components/ui/badge";
 
 export function TopicBadge({ topic }: { topic: TopicCategory }) {

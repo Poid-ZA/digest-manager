@@ -1,0 +1,8 @@
+[functions.trigger-digest-run]
+verify_jwt = false
+
+[functions.send-test-email]
+verify_jwt = false
+
+[functions.reset-digest-state]
+verify_jwt = false
