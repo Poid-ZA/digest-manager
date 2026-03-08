@@ -11,6 +11,7 @@ type PersistedArticle = {
   url: string;
   feed_id: string;
   published_at: string;
+  created_at?: string;
 };
 
 function throwIfError(error: { message: string } | null, context: string) {
@@ -78,7 +79,17 @@ Deno.serve(async (request) => {
     }
     for (const article of incomingArticles) {
       const previous = byUrl.get(article.url);
-      byUrl.set(article.url, previous ? { ...previous, ...article, id: previous.id } : article);
+      byUrl.set(
+        article.url,
+        previous
+          ? {
+              ...previous,
+              ...article,
+              id: previous.id,
+              created_at: previous.created_at ?? article.created_at ?? fetchedAt,
+            }
+          : article,
+      );
     }
     const mergedArticles = [...byUrl.values()]
       .sort((left, right) => Date.parse(right.published_at) - Date.parse(left.published_at))

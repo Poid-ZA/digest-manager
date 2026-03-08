@@ -70,6 +70,10 @@ function assertSupabase() {
   return supabase;
 }
 
+function nowIso() {
+  return new Date().toISOString();
+}
+
 function mapFeed(row: FeedRow): Feed {
   return {
     id: row.id,
@@ -170,6 +174,7 @@ export async function fetchState(): Promise<DigestAppState> {
 
 export async function createFeed(draft: FeedDraft) {
   const client = assertSupabase();
+  const timestamp = nowIso();
   await unwrap(
     client.from("digest_feeds").insert({
       id: `feed-${crypto.randomUUID().slice(0, 8)}`,
@@ -180,6 +185,8 @@ export async function createFeed(draft: FeedDraft) {
       active: draft.active,
       last_fetched: null,
       article_count: 0,
+      created_at: timestamp,
+      updated_at: timestamp,
     }),
   );
   return fetchState();
@@ -223,16 +230,21 @@ export async function importFeeds(payload: FeedDraft[]) {
   const client = assertSupabase();
   await unwrap(
     client.from("digest_feeds").insert(
-      payload.map((draft) => ({
-        id: `feed-${crypto.randomUUID().slice(0, 8)}`,
-        name: draft.name,
-        url: draft.url,
-        topic: draft.topic,
-        weight: draft.weight,
-        active: draft.active,
-        last_fetched: null,
-        article_count: 0,
-      })),
+      payload.map((draft) => {
+        const timestamp = nowIso();
+        return {
+          id: `feed-${crypto.randomUUID().slice(0, 8)}`,
+          name: draft.name,
+          url: draft.url,
+          topic: draft.topic,
+          weight: draft.weight,
+          active: draft.active,
+          last_fetched: null,
+          article_count: 0,
+          created_at: timestamp,
+          updated_at: timestamp,
+        };
+      }),
     ),
   );
 
@@ -244,12 +256,15 @@ export async function importFeeds(payload: FeedDraft[]) {
 
 export async function saveConfig(config: DigestConfig) {
   const client = assertSupabase();
+  const timestamp = nowIso();
   await unwrap(
     client.from("digest_config").upsert({
       id: 1,
       topic_limits: config.topicLimits,
       summary_length: config.summaryLength,
       recipients: config.recipients,
+      created_at: timestamp,
+      updated_at: timestamp,
     }),
   );
   return fetchState();

@@ -22,6 +22,7 @@ type DigestArticleRecord = {
   fetched_at: string;
   full_text: string;
   summary: string;
+  created_at: string;
 };
 
 type NvdDescription = { lang: string; value: string };
@@ -170,6 +171,7 @@ async function fetchNvdArticles(
         fetched_at: fetchedAt,
         full_text: articleFullText(description),
         summary: normalizeSummary(description, summaryLength),
+        created_at: fetchedAt,
       };
     });
 }
@@ -205,6 +207,7 @@ async function fetchRssArticles(
       fetched_at: fetchedAt,
       full_text: articleFullText(item["content:encoded"] || item.content || item.summary || item.contentSnippet || item.title || ""),
       summary: normalizeSummary(item["content:encodedSnippet"] || item.contentSnippet || item.summary || item.content || item.title || "", summaryLength),
+      created_at: fetchedAt,
     }));
 }
 
@@ -274,6 +277,7 @@ export function summarizeDigestResult({
     triggered_by: triggeredBy,
     preview: buildPreview(selectedArticles, fetchedAt),
     selected_article_ids: selectedArticles.map((article) => article.id),
+    created_at: fetchedAt,
   };
 
   return {

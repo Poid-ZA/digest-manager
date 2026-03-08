@@ -100,6 +100,7 @@ Deno.serve(async (request) => {
       preview,
       delivery_mode: deliveryMode,
       delivered,
+      created_at: sentAt,
     };
 
     await client.from("digest_test_emails").insert(log);
